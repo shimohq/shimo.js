@@ -15,11 +15,11 @@ var Shimo = require('shimo');
 var shimo = new Shimo();
 ```
 
-`Shimo` constructor accepts an option where:
+`Shimo` constructor accepts an option, where:
 
-* option.protocol: API protocol, defaults to 'https';
-* option.host: API host, defaults to 'api.shimo.im';
-* option.token: Access token of the user, defaults to null;
+* `option.protocol`: API protocol, defaults to 'https';
+* `option.host`: API host, defaults to 'api.shimo.im';
+* `option.token`: Access token of the user, defaults to null;
 
 ```javascript
 shimo.get('users/me', function (err, user) {});
