@@ -3,11 +3,15 @@
 var request = require('request');
 var Promise = require('bluebird');
 var createError = require('http-errors');
+var _ = require('lodash');
 
 function Shimo(options) {
-  options = options || {};
-  options.protocol = options.protocol || 'https';
-  options.host = options.host || 'api.shimo.im';
+  this.options = _.defaults(options || {}, {
+    protocol: 'https',
+    host: 'api.shimo.im'
+  });
+
+  this.options.json = true;
 }
 
 var methods = ['head', 'get', 'post', 'put', 'delete', 'patch'];
@@ -18,6 +22,7 @@ methods.forEach(function (method) {
       callback = options;
       options = null;
     }
+    options = _.defaults(options || {}, this.options);
     return new Promise(function (resolve, reject) {
       if (typeof path !== 'string') {
         throw new Error('Expect path to be a string');
@@ -27,17 +32,14 @@ methods.forEach(function (method) {
       }
       var query = {
         method: method,
-        url: this.options.protocol + '://' + this.options.host + path
+        url: this.options.protocol + '://' + this.options.host + path,
+        qs: options.qs,
+        body: options.body,
+        json: options.json
       };
 
-      if (options) {
-        query.qs = options.qs;
-        query.body = options.body;
-        query.json = true;
-      }
-
-      if (this.options.token) {
-        query.headers = { Authorization: 'Bearer ' + this.options.token };
+      if (options.token) {
+        query.headers = { Authorization: 'Bearer ' + options.token };
       }
 
       request(url, function (error, response, body) {
@@ -52,10 +54,26 @@ methods.forEach(function (method) {
         }
         resolve(body);
       });
-    }).nodeify(callback);
+    }.bind(this)).nodeify(callback);
   };
 });
 
 Shimo.prototype.del = Shimo.prototype.delete;
+
+Shimo.prototype.token = function (grantType, options, callback) {
+  return this.post('oauth/token', {
+    json: false,
+    body: _.assign(options, { grant_type: grantType })
+  }, callback);
+};
+
+Shimo.prototype.authorization = function (options, callback) {
+  return this.get('oauth/authorization', {
+    qs: _.defaults(options, {
+      client_id: this.options.clientId,
+      response_type: 'code'
+    })
+  }, callback);
+};
 
 module.exports = Shimo;
