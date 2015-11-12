@@ -5,13 +5,15 @@ var Promise = require('bluebird');
 var createError = require('http-errors');
 var _ = require('lodash');
 
+process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
+var config = require('config');
+
 function Shimo(options) {
-  this.options = _.defaults(options || {}, {
+  config.util.setModuleDefaults('shimo', _.defaults(options || {}, {
+    json: true,
     protocol: 'https',
     host: 'api.shimo.im'
-  });
-
-  this.options.json = true;
+  }));
 }
 
 var methods = ['head', 'get', 'post', 'put', 'delete', 'patch'];
@@ -22,7 +24,7 @@ methods.forEach(function (method) {
       callback = options;
       options = null;
     }
-    options = _.defaults(options || {}, this.options);
+    options = _.defaults(options || {}, config.get('shimo'));
     return new Promise(function (resolve, reject) {
       if (typeof path !== 'string') {
         throw new Error('Expect path to be a string');
@@ -32,7 +34,7 @@ methods.forEach(function (method) {
       }
       var query = {
         method: method,
-        url: this.options.protocol + '://' + this.options.host + path,
+        url: config.get('shimo.protocol') + '://' + config.get('shimo.host') + path,
         qs: options.qs,
         body: options.body,
         json: options.json
@@ -70,7 +72,7 @@ Shimo.prototype.token = function (grantType, options, callback) {
 Shimo.prototype.authorization = function (options, callback) {
   return this.get('oauth/authorization', {
     qs: _.defaults(options, {
-      client_id: this.options.clientId,
+      client_id: config.get('shimo.clientId'),
       response_type: 'code'
     })
   }, callback);
