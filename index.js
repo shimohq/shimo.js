@@ -4,17 +4,38 @@ var request = require('request');
 var Promise = require('bluebird');
 var createError = require('http-errors');
 var _ = require('lodash');
-
-process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
-var config = require('config');
+var urlLib = require('url');
 
 function Shimo(options) {
-  config.util.setModuleDefaults('shimo', _.defaults(options || {}, {
-    json: true,
+  this.options = _.defaults(options || {}, {
     protocol: 'https',
-    host: 'api.shimo.im'
-  }));
+    host: 'api.shimo.im',
+    requestOpts: { json: true }
+  });
+  this.options.base = this.options.protocol + '://' + this.options.host;
 }
+
+Shimo.prototype._request = function (options) {
+  var query = _.pick(options, ['method', 'qs', 'body', 'json']);
+  query.url = this.options.base + (path[0] === '/' ? path : '/' + path);
+  if (this.options.accessToken) {
+    query.headers = { Authorization: 'Bearer ' + this.options.accessToken };
+  }
+
+  var _this = this;
+  return apiRequest(query).catch(function (err) {
+    if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
+      throw err;
+    }
+    return _this.token('refresh_token', {
+      refresh_token: _this.options.refreshToken
+    }).then(function (res) {
+      _this.options.accessToken = res.access_token;
+      _this.options.refreshToken = res.refresh_token;
+      return _this.request(_.assign({}, options, { retried: true }));
+    });
+  });
+};
 
 var methods = ['head', 'get', 'post', 'put', 'delete', 'patch'];
 
@@ -24,43 +45,12 @@ methods.forEach(function (method) {
       callback = options;
       options = null;
     }
-    options = _.defaults(options || {}, config.get('shimo'));
-    return new Promise(function (resolve, reject) {
-      if (typeof path !== 'string') {
-        throw new Error('Expect path to be a string');
-      }
-      if (path[0] !== '/') {
-        path = '/' + path;
-      }
-      var query = {
-        method: method,
-        url: config.get('shimo.protocol') + '://' + config.get('shimo.host') + path,
-        qs: options.qs,
-        body: options.body,
-        json: options.json
-      };
-
-      if (options.token) {
-        query.headers = { Authorization: 'Bearer ' + options.token };
-      }
-
-      request(url, function (error, response, body) {
-        if (error) {
-          throw error;
-        }
-        if (response.statusCode.toString()[0] !== '2') {
-          if (body && body.error) {
-            throw createError(response.statusCode, body.error);
-          }
-          throw createError(response.statusCode);
-        }
-        resolve(body);
-      });
-    }.bind(this)).nodeify(callback);
+    options = _.defaults({}, options, this.options.requestOpts);
+    options.method = method;
+    options.path = path;
+    return this._request(options).nodeify(callback);
   };
 });
-
-Shimo.prototype.del = Shimo.prototype.delete;
 
 Shimo.prototype.token = function (grantType, options, callback) {
   return this.post('oauth/token', {
@@ -70,12 +60,33 @@ Shimo.prototype.token = function (grantType, options, callback) {
 };
 
 Shimo.prototype.authorization = function (options, callback) {
-  return this.get('oauth/authorization', {
-    qs: _.defaults(options, {
-      client_id: config.get('shimo.clientId'),
+  return urlLib.format({
+    protocol: this.options.protocol,
+    pathname: 'oauth/authorization',
+    host: this.options.host,
+    query: _.assign(options, {
+      client_id: this.options.clientId,
       response_type: 'code'
     })
-  }, callback);
+  });
 };
+
+function apiRequest(query) {
+  return new Promise(function (resolve, reject) {
+    request(query, function (error, response, body) {
+      if (error) {
+        throw error;
+      }
+      var code = response.statusCode;
+      if (code.toString()[0] !== '2') {
+        if (body && body.error) {
+          throw createError(code, body.error);
+        }
+        throw createError(code);
+      }
+      resolve(body);
+    });
+  });
+}
 
 module.exports = Shimo;
