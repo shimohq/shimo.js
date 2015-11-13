@@ -5,6 +5,8 @@ var Promise = require('bluebird');
 var createError = require('http-errors');
 var _ = require('lodash');
 var urlLib = require('url');
+var EventEmitter = require('events').EventEmitter;
+var utils = require('./utils');
 
 function Shimo(options) {
   this.options = _.defaults(options || {}, {
@@ -13,7 +15,10 @@ function Shimo(options) {
     requestOpts: { json: true }
   });
   this.options.base = this.options.protocol + '://' + this.options.host;
+
+  EventEmitter.call(this);
 }
+util.inherits(Redis, EventEmitter);
 
 Shimo.prototype._request = function (options) {
   var query = _.pick(options, ['method', 'qs', 'body', 'json']);
@@ -30,7 +35,9 @@ Shimo.prototype._request = function (options) {
     return _this.token('refresh_token', {
       refresh_token: _this.options.refreshToken
     }).then(function (res) {
+      _this.emit('accesstoken_change', res.access_token);
       _this.options.accessToken = res.access_token;
+      _this.emit('refreshtoken_change', res.refresh_token);
       _this.options.refreshToken = res.refresh_token;
       return _this.request(_.assign({}, options, { retried: true }));
     });
