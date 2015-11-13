@@ -6,7 +6,7 @@ var createError = require('http-errors');
 var _ = require('lodash');
 var urlLib = require('url');
 var EventEmitter = require('events').EventEmitter;
-var utils = require('./utils');
+var inherits = require('util').inherits;
 
 function Shimo(options) {
   this.options = _.defaults(options || {}, {
@@ -18,7 +18,7 @@ function Shimo(options) {
 
   EventEmitter.call(this);
 }
-util.inherits(Redis, EventEmitter);
+inherits(Shimo, EventEmitter);
 
 Shimo.prototype._request = function (options) {
   var query = _.pick(options, ['method', 'qs', 'body', 'json']);
