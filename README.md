@@ -4,6 +4,10 @@ Official Shimo client for Node.js. Supports Node.js >= 0.10.
 [![Build Status](https://travis-ci.org/shimohq/shimo.js.svg?branch=master)](https://travis-ci.org/shimohq/shimo.js)
 [![Dependency Status](https://david-dm.org/shimohq/shimo.js.svg)](https://david-dm.org/shimohq/shimo.js)
 
+## Links
+
+[API Documentation](http://shimohq.github.io/doc)
+
 ## Install
 
 ```shell
