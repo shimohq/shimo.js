@@ -19,11 +19,14 @@ var shimo = new Shimo();
 
 `Shimo` constructor accepts an option, where:
 
-* `option.protocol`: [Optional] API protocol, defaults to 'https';
-* `option.host`: [Optional] API host, defaults to 'api.shimo.im';
-* `option.clientId`: [Optional] Client id, used to refresh token;
-* `option.accessToken`: [Optional] Access token of the user, defaults to null;
-* `option.refreshToken`: [Optional] Refresh token of the user, defaults to null;
+| name         | required | default      | description                                     |
+|--------------|----------|--------------|-------------------------------------------------|
+| protocol     | false    | https        | API protocol                                    |
+| host         | false    | api.shimo.im | API host                                        |
+| clientId     | false    | `null`       | Client id, used for requesting tokens           |
+| clientSecret | false    | `null`       | Client secret, used for requesting tokens       |
+| accessToken  | false    | `null`       | Access Token, used for access private resources |
+| refreshToken | false    | `null`       | Refresh Token, used for exchanging access token |
 
 API supports both Node-style callback and Bluebird Proimse:
 
