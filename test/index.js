@@ -28,10 +28,15 @@ describe('shimo', function () {
     });
 
     it('should return results', function (done) {
-      var shimo = new Shimo();
-      shimo.get('', function (err, res) {
+      var server = require('http').createServer(function (req, res) {
+        expect(req.url).to.eql('/api?q=1');
+        res.end('shimo-api');
+      }).listen(0);
+      var shimo = new Shimo({ protocol: 'http', host: '127.0.0.1:' + server.address().port });
+      shimo.get('/api', { qs: { q: 1 } }, function (err, res) {
         expect(err).to.eql(null);
         expect(res).to.match(/shimo-api/);
+        server.close();
         done();
       });
     });
