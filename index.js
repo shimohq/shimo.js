@@ -22,7 +22,7 @@ inherits(Shimo, EventEmitter);
 
 Shimo.prototype._request = function (options) {
   var query = _.pick(options, ['method', 'qs', 'body', 'json']);
-  query.url = this.options.base + (path[0] === '/' ? path : '/' + path);
+  query.url = this.options.base + (options.path[0] === '/' ? options.path : '/' + options.path);
   if (this.options.accessToken) {
     query.headers = { Authorization: 'Bearer ' + this.options.accessToken };
   }

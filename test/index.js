@@ -26,6 +26,15 @@ describe('shimo', function () {
       };
       shimo.post('foo', { qs: { q: 1 }, body: { b: 1 } });
     });
+
+    it('should return results', function (done) {
+      var shimo = new Shimo();
+      shimo.get('', function (err, res) {
+        expect(err).to.eql(null);
+        expect(res).to.match(/shimo-api/);
+        done();
+      });
+    });
   });
 
   describe('#token', function () {
