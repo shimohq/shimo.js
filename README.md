@@ -6,7 +6,7 @@ Official Shimo client for Node.js. Supports Node.js >= 0.10.
 
 ## Links
 
-[API Documentation](http://shimohq.github.io/doc)
+[Shimo Open API Documentation](http://shimohq.github.io/doc)
 
 ## Install
 
