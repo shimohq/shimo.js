@@ -48,7 +48,7 @@ methods.forEach(function (method) {
     options = _.defaults({}, options, this.options.requestOpts);
     options.method = method;
     options.path = path;
-    return this._request(options).nodeify(callback);
+    return this._request(options).asCallback(callback);
   };
 });
 
