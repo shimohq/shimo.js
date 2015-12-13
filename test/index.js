@@ -6,7 +6,7 @@ var Promise = require('bluebird');
 
 describe('shimo', function () {
   it('has default options', function () {
-    var shimo = new Shimo();
+    var shimo = new Shimo({ version: 'v1' });
     expect(shimo.options.protocol).to.eql('https');
     expect(shimo.options.host).to.eql('api.shimo.im');
     expect(shimo.options.base).to.eql('https://api.shimo.im');
@@ -14,7 +14,7 @@ describe('shimo', function () {
 
   describe('#:method', function () {
     it('should send correct options', function (done) {
-      var shimo = new Shimo();
+      var shimo = new Shimo({ version: 'v1' });
       shimo._request = function (options) {
         expect(options.json).to.eql(true);
         expect(options.method).to.eql('post');
@@ -32,7 +32,7 @@ describe('shimo', function () {
         expect(req.url).to.eql('/api?q=1');
         res.end('shimo-api');
       }).listen(0);
-      var shimo = new Shimo({ protocol: 'http', host: '127.0.0.1:' + server.address().port });
+      var shimo = new Shimo({ version: 'v1', protocol: 'http', host: '127.0.0.1:' + server.address().port });
       shimo.get('/api', { qs: { q: 1 } }, function (err, res) {
         expect(err).to.eql(null);
         expect(res).to.match(/shimo-api/);
@@ -44,7 +44,7 @@ describe('shimo', function () {
 
   describe('#token', function () {
     it('should send correct options', function (done) {
-      var shimo = new Shimo();
+      var shimo = new Shimo({ version: 'v1' });
       shimo._request = function (options) {
         expect(options.json).to.eql(false);
         expect(options.method).to.eql('post');
@@ -59,7 +59,7 @@ describe('shimo', function () {
 
   describe('#authorization', function () {
     it('should return correct url', function () {
-      var shimo = new Shimo({ clientId: '123' });
+      var shimo = new Shimo({ version: 'v1', clientId: '123' });
       var url = shimo.authorization({ redirect_uri: 'http://my.tld/path?q=6' });
       var parsedUrl = require('url').parse(url, true);
       expect(parsedUrl.protocol).to.eql('https:');

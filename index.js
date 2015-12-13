@@ -27,7 +27,7 @@ inherits(Shimo, EventEmitter);
 Shimo.prototype._request = function (options) {
   var query = _.pick(options, ['method', 'qs', 'body', 'json']);
   query.url = this.options.base + (options.path[0] === '/' ? options.path : '/' + options.path);
-  query.headers = { Accept: 'application/vnd.github.' + this.options.version + '+json' };
+  query.headers = { Accept: 'application/vnd.shimo.' + this.options.version + '+json' };
   if (this.options.accessToken) {
     query.headers.Authorization = 'Bearer ' + this.options.accessToken;
   }
