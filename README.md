@@ -18,13 +18,14 @@ npm install shimo
 
 ```javascript
 var Shimo = require('shimo');
-var shimo = new Shimo();
+var shimo = new Shimo({ version: 'v2' });
 ```
 
 `Shimo` constructor accepts an option, where:
 
 | name         | required | default      | description                                     |
 |--------------|----------|--------------|-------------------------------------------------|
+| verion       | true     |              | API version                                     |
 | protocol     | false    | https        | API protocol                                    |
 | host         | false    | api.shimo.im | API host                                        |
 | clientId     | false    | `null`       | Client id, used for requesting tokens           |

@@ -9,6 +9,10 @@ var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 
 function Shimo(options) {
+  if (!options.version) {
+    throw new Error('version is required');
+  }
+
   this.options = _.defaults(options || {}, {
     protocol: 'https',
     host: 'api.shimo.im',
@@ -23,8 +27,9 @@ inherits(Shimo, EventEmitter);
 Shimo.prototype._request = function (options) {
   var query = _.pick(options, ['method', 'qs', 'body', 'json']);
   query.url = this.options.base + (options.path[0] === '/' ? options.path : '/' + options.path);
+  query.headers = { Accept: 'application/vnd.github.' + this.options.version + '+json' };
   if (this.options.accessToken) {
-    query.headers = { Authorization: 'Bearer ' + this.options.accessToken };
+    query.headers.Authorization = 'Bearer ' + this.options.accessToken;
   }
 
   var _this = this;
