@@ -1,6 +1,6 @@
 {
   "name": "shimo",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Official Shimo client for Node.js",
   "main": "index.js",
   "scripts": {

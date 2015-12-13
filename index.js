@@ -87,14 +87,16 @@ function apiRequest(query) {
   return new Promise(function (resolve, reject) {
     request(query, function (error, response, body) {
       if (error) {
-        throw error;
+        reject(error);
+        return;
       }
       var code = response.statusCode;
       if (code.toString()[0] !== '2') {
         if (body && body.error) {
-          throw createError(code, body.error);
+          reject(createError(code, body.error));
+        } else {
+          reject(createError(code));
         }
-        throw createError(code);
       }
       resolve(body);
     });
