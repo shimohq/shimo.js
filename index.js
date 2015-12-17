@@ -20,6 +20,10 @@ function Shimo(options) {
   });
   this.options.base = this.options.protocol + '://' + this.options.host;
 
+  if (this.options.bluebird) {
+    Promise.config(this.options.bluebird);
+  }
+
   EventEmitter.call(this);
 }
 inherits(Shimo, EventEmitter);
@@ -97,6 +101,7 @@ function apiRequest(query) {
         } else {
           reject(createError(code));
         }
+        return;
       }
       resolve(body);
     });
