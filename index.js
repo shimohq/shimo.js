@@ -37,7 +37,7 @@ Shimo.prototype._request = function (options) {
   }
 
   var _this = this;
-  return apiRequest(query).catch(function (err) {
+  return apiRequest(query, options.rawResponse).catch(function (err) {
     if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
       throw err;
     }
@@ -87,7 +87,7 @@ Shimo.prototype.authorization = function (options, callback) {
   });
 };
 
-function apiRequest(query) {
+function apiRequest(query, rawResponse) {
   return new Promise(function (resolve, reject) {
     request(query, function (error, response, body) {
       if (error) {
@@ -103,7 +103,11 @@ function apiRequest(query) {
         }
         return;
       }
-      resolve(body);
+      if (rawResponse) {
+        resolve(response);
+      } else {
+        resolve(body);
+      }
     });
   });
 }

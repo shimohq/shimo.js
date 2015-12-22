@@ -70,4 +70,21 @@ describe('shimo', function () {
       expect(parsedUrl.query.response_type).to.eql('code');
     });
   });
+
+  describe('rawResponse', function () {
+    it('should return raw response', function (done) {
+      var server = require('http').createServer(function (req, res) {
+        expect(req.url).to.eql('/api?q=1');
+        res.end('shimo-api');
+      }).listen(0);
+      var shimo = new Shimo({ version: 'v1', protocol: 'http', host: '127.0.0.1:' + server.address().port });
+      shimo.get('/api', { qs: { q: 1 }, rawResponse: true }, function (err, res) {
+        expect(err).to.eql(null);
+        expect(res.statusCode).to.eql(200);
+        expect(res.body).to.match(/shimo-api/);
+        server.close();
+        done();
+      });
+    });
+  });
 });
