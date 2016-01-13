@@ -40,6 +40,21 @@ describe('shimo', function () {
         done();
       });
     });
+
+    it('should include headers', function (done) {
+      var server = require('http').createServer(function (req, res) {
+        expect(req.headers).to.have.property('q', '1');
+        expect(req.headers).to.have.property('accept');
+        res.end('shimo-api');
+      }).listen(0);
+      var shimo = new Shimo({ version: 'v1', protocol: 'http', host: '127.0.0.1:' + server.address().port });
+      shimo.get('/api', { headers: { q: 1 } }, function (err, res) {
+        expect(err).to.eql(null);
+        expect(res).to.match(/shimo-api/);
+        server.close();
+        done();
+      });
+    });
   });
 
   describe('#token', function () {
