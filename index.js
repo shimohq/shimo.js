@@ -32,7 +32,7 @@ Shimo.prototype._request = function (options) {
   var query = _.pick(options, ['method', 'qs', 'body', 'json', 'headers']);
   query.url = this.options.base + (options.path[0] === '/' ? options.path : '/' + options.path);
   var authHeader = { Accept: 'application/vnd.shimo.' + this.options.version + '+json' };
-  query.headers = query.headers ? _.assign(authHeader, query.headers) : query.headers;
+  query.headers = query.headers ? _.assign(authHeader, query.headers) : authHeader;
   if (this.options.accessToken) {
     query.headers.Authorization = 'Bearer ' + this.options.accessToken;
   }
