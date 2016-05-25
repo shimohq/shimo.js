@@ -13,7 +13,7 @@ function Shimo(options) {
     throw new Error('version is required');
   }
 
-  this.options = _.defaults(options || {}, {
+  this.options = _.defaultsDeep(options || {}, {
     protocol: 'https',
     host: 'api.shimo.im',
     requestOpts: { json: true }
@@ -62,7 +62,7 @@ methods.forEach(function (method) {
       callback = options;
       options = null;
     }
-    options = _.defaults({}, options, this.options.requestOpts);
+    options = _.defaultsDeep({}, options, this.options.requestOpts);
     options.method = method;
     options.path = path;
     return this._request(options).asCallback(callback);
