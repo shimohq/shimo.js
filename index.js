@@ -7,6 +7,7 @@ var _ = require('lodash');
 var urlLib = require('url');
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
+var qs = require('qs');
 
 function Shimo(options) {
   if (!options.version) {
@@ -16,8 +17,7 @@ function Shimo(options) {
   this.options = _.defaultsDeep(options || {}, {
     protocol: 'https',
     host: 'api.shimo.im',
-    requestOpts: { json: true },
-    requestLib: request
+    requestOpts: { json: true }
   });
   this.options.base = this.options.protocol + '://' + this.options.host;
 
@@ -39,7 +39,7 @@ Shimo.prototype._request = function (options) {
   }
 
   var _this = this;
-  return apiRequest(query, options.rawResponse, this.options.requestLib).catch(function (err) {
+  return apiRequest(query, options.rawResponse, this.options.nats).catch(function (err) {
     if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
       throw err;
     }
@@ -89,9 +89,35 @@ Shimo.prototype.authorization = function (options, callback) {
   });
 };
 
-function apiRequest(query, rawResponse, requestLib) {
+function apiRequest(query, rawResponse, nats) {
+  if (nats) {
+    return new Promise(function (resolve, reject) {
+      query.method = query.method.toUpperCase();
+      if (query.qs) {
+        var parsedUrl = urlLib.parse(query.url);
+        var parsedQS;
+        if (parsedUrl.search) {
+          parsedQS = Object.assign(qs.parse(parsedUrl.search.slice(1)), query.qs);
+        } else {
+          parsedQS = query.qs;
+        }
+        delete query.qs;
+        parsedUrl.search = '?' + qs.stringify(parsedQS);
+        query.url = urlLib.format(parsedUrl);
+      }
+      query.headers = Object.keys(query.headers).reduce(function (headers, key) {
+        headers[key.toLowerCase()] = query.headers[key];
+        return headers;
+      }, {});
+      delete query.json;
+      nats.request('api.http', JSON.stringify(query), { max: 1 }, function (res) {
+        console.log('==gotres', res);
+        resolve(res);
+      });
+    });
+  }
   return new Promise(function (resolve, reject) {
-    requestLib(query, function (error, response, body) {
+    request(query, function (error, response, body) {
       if (error) {
         reject(error);
         return;
