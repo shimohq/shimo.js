@@ -16,7 +16,8 @@ function Shimo(options) {
   this.options = _.defaultsDeep(options || {}, {
     protocol: 'https',
     host: 'api.shimo.im',
-    requestOpts: { json: true }
+    requestOpts: { json: true },
+    requestLib: request
   });
   this.options.base = this.options.protocol + '://' + this.options.host;
 
@@ -38,7 +39,7 @@ Shimo.prototype._request = function (options) {
   }
 
   var _this = this;
-  return apiRequest(query, options.rawResponse).catch(function (err) {
+  return apiRequest(query, options.rawResponse, this.options.requestLib).catch(function (err) {
     if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
       throw err;
     }
@@ -88,9 +89,9 @@ Shimo.prototype.authorization = function (options, callback) {
   });
 };
 
-function apiRequest(query, rawResponse) {
+function apiRequest(query, rawResponse, requestLib) {
   return new Promise(function (resolve, reject) {
-    request(query, function (error, response, body) {
+    requestLib(query, function (error, response, body) {
       if (error) {
         reject(error);
         return;
