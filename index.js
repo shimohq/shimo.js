@@ -125,7 +125,7 @@ function apiRequest(query, rawResponse, nats) {
       var code = response.statusCode;
       if (code.toString()[0] !== '2') {
         if (body && body.error) {
-          reject(createError(code, body.error));
+          reject(createError(code, body.error, { errorCode: body.errorCode }));
         } else {
           reject(createError(code));
         }
