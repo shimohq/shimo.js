@@ -41,7 +41,6 @@ Shimo.prototype._request = function (options) {
   var _this = this;
   return apiRequest(query, {
     rawResponse: options.rawResponse,
-    nats: this.options.nats,
     headerOpts: this.options.headerOpts
   }).catch(function (err) {
     if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
@@ -95,35 +94,8 @@ Shimo.prototype.authorization = function (options, callback) {
 
 function apiRequest(query, options) {
   var rawResponse = options.rawResponse;
-  var nats = options.nats;
   var headerOpts = options.headerOpts;
 
-  if (nats) {
-    return new Promise(function (resolve, reject) {
-      query.method = query.method.toUpperCase();
-      if (query.qs) {
-        var parsedUrl = urlLib.parse(query.url);
-        var parsedQS;
-        if (parsedUrl.search) {
-          parsedQS = Object.assign(qs.parse(parsedUrl.search.slice(1)), query.qs);
-        } else {
-          parsedQS = query.qs;
-        }
-        delete query.qs;
-        parsedUrl.search = '?' + qs.stringify(parsedQS);
-        query.url = urlLib.format(parsedUrl);
-      }
-      query.headers = Object.keys(query.headers).reduce(function (headers, key) {
-        headers[key.toLowerCase()] = query.headers[key];
-        return headers;
-      }, {});
-      delete query.json;
-      nats.request('api.http', JSON.stringify(query), { max: 1 }, function (res) {
-        console.log('==gotres', res);
-        resolve(res);
-      });
-    });
-  }
   return new Promise(function (resolve, reject) {
     request(query, function (error, response, body) {
       if (error) {
