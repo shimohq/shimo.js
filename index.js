@@ -39,7 +39,10 @@ Shimo.prototype._request = function (options) {
   }
 
   var _this = this;
-  return apiRequest(query, options.rawResponse, this.options.nats).catch(function (err) {
+  return apiRequest(query, {
+    rawResponse: options.rawResponse,
+    headerOpts: this.options.headerOpts
+  }).catch(function (err) {
     if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
       throw err;
     }
@@ -89,33 +92,10 @@ Shimo.prototype.authorization = function (options, callback) {
   });
 };
 
-function apiRequest(query, rawResponse, nats) {
-  if (nats) {
-    return new Promise(function (resolve, reject) {
-      query.method = query.method.toUpperCase();
-      if (query.qs) {
-        var parsedUrl = urlLib.parse(query.url);
-        var parsedQS;
-        if (parsedUrl.search) {
-          parsedQS = Object.assign(qs.parse(parsedUrl.search.slice(1)), query.qs);
-        } else {
-          parsedQS = query.qs;
-        }
-        delete query.qs;
-        parsedUrl.search = '?' + qs.stringify(parsedQS);
-        query.url = urlLib.format(parsedUrl);
-      }
-      query.headers = Object.keys(query.headers).reduce(function (headers, key) {
-        headers[key.toLowerCase()] = query.headers[key];
-        return headers;
-      }, {});
-      delete query.json;
-      nats.request('api.http', JSON.stringify(query), { max: 1 }, function (res) {
-        console.log('==gotres', res);
-        resolve(res);
-      });
-    });
-  }
+function apiRequest(query, options) {
+  var rawResponse = options.rawResponse;
+  var headerOpts = options.headerOpts;
+
   return new Promise(function (resolve, reject) {
     request(query, function (error, response, body) {
       if (error) {
@@ -131,12 +111,41 @@ function apiRequest(query, rawResponse, nats) {
         }
         return;
       }
+
+      if (_.isObject(headerOpts) && _.isFunction(headerOpts.set)) {
+        var headers = _.mapKeys(response.headers, function (v, k) { return k.toLowerCase(); });
+
+        if (headerOpts.only) {
+          headers = _.pick(headers, lowerCaseArray(headerOpts.only));
+        }
+
+        if (headerOpts.except) {
+          headers = _.omit(headers, lowerCaseArray(headerOpts.except));
+        }
+
+        headerOpts.set(headers);
+      }
+
       if (rawResponse) {
         resolve(response);
       } else {
         resolve(body);
       }
     });
+  });
+}
+
+function lowerCaseArray(array) {
+  if (typeof array === 'string') {
+    array = [array];
+  }
+
+  return array.map(function (item) {
+    if (typeof item === 'string') {
+      return item.toLowerCase();
+    }
+
+    return item;
   });
 }
 
