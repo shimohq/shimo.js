@@ -39,7 +39,11 @@ Shimo.prototype._request = function (options) {
   }
 
   var _this = this;
-  return apiRequest(query, options.rawResponse, this.options.nats).catch(function (err) {
+  return apiRequest(query, {
+    rawResponse: options.rawResponse,
+    nats: this.options.nats,
+    headerOpts: this.options.headerOpts
+  }).catch(function (err) {
     if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
       throw err;
     }
@@ -89,7 +93,11 @@ Shimo.prototype.authorization = function (options, callback) {
   });
 };
 
-function apiRequest(query, rawResponse, nats) {
+function apiRequest(query, options) {
+  var rawResponse = options.rawResponse;
+  var nats = options.nats;
+  var headerOpts = options.headerOpts;
+
   if (nats) {
     return new Promise(function (resolve, reject) {
       query.method = query.method.toUpperCase();
@@ -131,12 +139,41 @@ function apiRequest(query, rawResponse, nats) {
         }
         return;
       }
+
+      if (_.isObject(headerOpts) && _.isFunction(headerOpts.set)) {
+        var headers = _.mapKeys(response.headers, function (v, k) { return k.toLowerCase(); });
+
+        if (headerOpts.only) {
+          headers = _.pick(headers, lowerCaseArray(headerOpts.only));
+        }
+
+        if (headerOpts.except) {
+          headers = _.omit(headers, lowerCaseArray(headerOpts.except));
+        }
+
+        headerOpts.set(headers);
+      }
+
       if (rawResponse) {
         resolve(response);
       } else {
         resolve(body);
       }
     });
+  });
+}
+
+function lowerCaseArray(array) {
+  if (typeof array === 'string') {
+    array = [array];
+  }
+
+  return array.map(function (item) {
+    if (typeof item === 'string') {
+      return item.toLowerCase();
+    }
+
+    return item;
   });
 }
 
