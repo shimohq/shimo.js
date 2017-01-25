@@ -41,7 +41,8 @@ Shimo.prototype._request = function (options) {
   var _this = this;
   return apiRequest(query, {
     rawResponse: options.rawResponse,
-    headerOpts: this.options.headerOpts
+    headerOpts: this.options.headerOpts,
+    stream: options.stream
   }).catch(function (err) {
     if (err.status !== 401 || options.retried || !_this.options.refreshToken) {
       throw err;
@@ -97,6 +98,12 @@ function apiRequest(query, options) {
   var headerOpts = options.headerOpts;
 
   return new Promise(function (resolve, reject) {
+    if (options.stream) {
+      request(query).pipe(options.stream);
+      resolve();
+      return;
+    }
+
     request(query, function (error, response, body) {
       if (error) {
         reject(error);
