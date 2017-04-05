@@ -25,7 +25,7 @@ var shimo = new Shimo({ version: 'v2' });
 
 | name         | required | default      | description                                     |
 |--------------|----------|--------------|-------------------------------------------------|
-| verion       | true     |              | API version                                     |
+| version      | true     |              | API version                                     |
 | protocol     | false    | https        | API protocol                                    |
 | host         | false    | api.shimo.im | API host                                        |
 | clientId     | false    | `null`       | Client id, used for requesting tokens           |
@@ -50,7 +50,7 @@ Invoking Shimo Open API. Accepts three arguments:
 
 | name     | required | description                                                    |
 |----------|----------|----------------------------------------------------------------|
-| path     | true     | API endpoint, e.g. `"users/me"`                                |
+| path     | true     | API endpoint, e.g. `'users/me'`                                |
 | option   | false    | API options, e.g. `{ qs: { id: 12 }, body: { title: 'new' } }` |
 | callback | false    | Callback function. If omitted, a promise will be returned      |
 
@@ -66,7 +66,7 @@ Requesting tokens. Accepts three arguments:
 
 | name       | required | description                                               |
 |------------|----------|-----------------------------------------------------------|
-| grant type | true     | Grant type, e.g. "refresh_token", "password"              |
+| grant type | true     | Grant type, e.g. `'refresh_token'`, `'password'`          |
 | option     | false    | Token options, e.g. `{ scope: 'read' }`                   |
 | callback   | false    | Callback function. If omitted, a promise will be returned |
 
