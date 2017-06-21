@@ -1,13 +1,13 @@
 'use strict';
 
-var request = require('superagent');
+var request = require('request');
 var Promise = require('bluebird');
 var createError = require('http-errors');
 var _ = require('lodash');
 var urlLib = require('url');
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
-var qs = require('querystring');
+var qs = require('qs');
 
 function Shimo(options) {
   if (!options.version) {
@@ -93,77 +93,23 @@ Shimo.prototype.authorization = function (options, callback) {
   });
 };
 
-function _request(query, options) {
-  var method = typeof query.method === 'string' ? query.method.toUpperCase() : 'GET';
-
-  var req = request(method, query.url);
-
-  for (var header in query.headers) {
-    if (query.headers.hasOwnProperty(header)) {
-      req.set(header, query.headers[header]);
-    }
-  }
-
-  if (typeof query.qs === 'object' && query.qs !== null) {
-    req.query(query.qs);
-  }
-
-  return req;
-}
-
-// Return a simpler request object to allow serialization
-function requestToJSON () {
-  return {
-    uri: this.uri,
-    method: this.method,
-    headers: this.headers
-  };
-}
-
-function responseToJSON () {
-  return {
-    statusCode: this.statusCode,
-    body: this.body,
-    headers: this.headers,
-    request: requestToJSON.call(this.request)
-  };
-}
-
 function apiRequest(query, options) {
   var rawResponse = options.rawResponse;
   var headerOpts = options.headerOpts;
 
   return new Promise(function (resolve, reject) {
-    var req = _request(query, options);
-
     if (options.stream) {
-      req.pipe(options.stream);
+      request(query).pipe(options.stream);
       resolve();
       return;
     }
 
-    req.end(function (err, res) {
-      var response = res.res;
-
-      if (err || !res.ok) {
-        reject(err || res);
+    request(query, function (error, response, body) {
+      if (error) {
+        reject(error);
         return;
       }
-
-      // APIs for request package
-      response.uri = urlLib.parse(req.url.split('?')[0] + qs.stringify(req.qs))
-      response.statusCode = res.status;
-      response.toJSON = responseToJSON;
-      response.respone = response;
-      response.request = res.request;
-
       var code = response.statusCode;
-      var body = response.body = res.text;
-
-      if (/\/json/i.test(response.headers['content-type'])) {
-        response.body = body = res.body;
-      }
-
       if (code.toString()[0] !== '2') {
         if (body && body.error) {
           reject(createError(code, body.error, { errorCode: body.errorCode }));
