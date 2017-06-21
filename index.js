@@ -30,7 +30,7 @@ function Shimo(options) {
 inherits(Shimo, EventEmitter);
 
 Shimo.prototype._request = function (options) {
-  var query = _.pick(options, ['method', 'qs', 'body', 'json', 'headers']);
+  var query = _.pick(options, ['method', 'qs', 'body', 'json', 'headers', 'formData']);
   query.url = this.options.base + (options.path[0] === '/' ? options.path : '/' + options.path);
   var authHeader = { Accept: 'application/vnd.shimo.' + this.options.version + '+json' };
   query.headers = query.headers ? _.assign(authHeader, query.headers) : authHeader;
