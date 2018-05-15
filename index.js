@@ -112,9 +112,9 @@ function apiRequest(query, options) {
       var code = response.statusCode;
       if (code.toString()[0] !== '2') {
         if (body && body.error) {
-          reject(createError(code, body.error, { errorCode: body.errorCode }));
+          reject(createError(code, body.error, { errorCode: body.errorCode, serverResponse: response }));
         } else {
-          reject(createError(code));
+          reject(createError(code), { serverResponse: response });
         }
         return;
       }
